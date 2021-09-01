@@ -10,7 +10,7 @@ img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # while the software can handle colo
 # ...
 # ... any type of processing needed for OCR, usually some expansion, opening, etc.
 # ... 
-string = reader.read(img.tobytes(), img.shape[1], img.shape[0], 1) # the last parameter is bits used per pixel. For grayscale, this is 1, for RGB, it should be 3 (Although for opencv, BGR should first be made RGB)
+string = reader.read(img.tobytes(), img.shape[1], img.shape[0], 1) # the last parameter is bytes used per pixel. For grayscale, this is 1, for RGB, it should be 3 (Although for opencv, BGR should first be made RGB)
 
 # for PIL
 img = Image.open('example.jpg')
