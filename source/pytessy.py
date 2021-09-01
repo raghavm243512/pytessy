@@ -73,7 +73,7 @@ class TesseractHandler(object):
 
 
 
-    def __init__(self, lib_path=None,  data_path=None, language='eng'):
+    def __init__(self, lib_path=None,  data_path=None, language='eng', oem=3, psm=0):
         """
         Initializes Tesseract-OCR api handler object instance
         -----------------------------------------------------
@@ -85,10 +85,10 @@ class TesseractHandler(object):
         if self._lib is None:
             self.setup_lib(lib_path)
         self._api = self._lib.TessBaseAPICreate()
-        if self._lib.TessBaseAPIInit3(self._api, data_path.encode('ascii'),
-                                      language.encode('ascii')):
+        if self._lib.TessBaseAPIInit2(self._api, data_path.encode('ascii'),
+                                      language.encode('ascii'), oem):
             raise PyTessyError('Failed to initalize Tesseract-OCR library.')
-
+        self._lib.TessBaseAPISetPageSegMode(self._api, psm)
 
 
     def get_text(self):
@@ -160,10 +160,14 @@ class TesseractHandler(object):
 
         lib.TessBaseAPIDelete.restype = None                    # void
         lib.TessBaseAPIDelete.argtypes = (cls.TessBaseAPI,)     # handle
-
-        lib.TessBaseAPIInit3.argtypes = (cls.TessBaseAPI,       # handle
+        
+        lib.TessBaseAPISetPageSegMode.restype = None            # void
+        lib.TessBaseAPISetPageSegMode.argtype = ctypes.c_int    # Page segmentation mode
+        
+        lib.TessBaseAPIInit2.argtypes = (cls.TessBaseAPI,       # handle
                                          ctypes.c_char_p,       # datapath
-                                         ctypes.c_char_p)       # language
+                                         ctypes.c_char_p,       # language
+                                         ctypes.c_int)          # OEM (Engine mode)       
 
         lib.TessBaseAPISetImage.restype = None                  # void
         lib.TessBaseAPISetImage.argtypes = (cls.TessBaseAPI,    # handle
@@ -227,7 +231,7 @@ class PyTessy(object):
 
 
     def __init__(self, tesseract_path=None, api_version=None, lib_path=None,
-                 data_path=None, language='eng', verbose_search=False):
+                 data_path=None, language='eng', verbose_search=False, oem=3, psm=0):
         """
         Initializes PyTessy instance
         ----------------------------
@@ -244,6 +248,8 @@ class PyTessy(object):
                  language       (string)    [optional] Languge code to use.
                  verbose_search (boolean)   [optional] Whether to display
                                             library searching process or not.
+                 oem            (int)       Engine mode to use, defaults to default mode
+                 psm            (int)       Page segmentation mode, defaults to OSD only
         @Raises: NotImplementedError        If the operating system is not
                                             implemented yet (linux, macOS).
                                             You can avoid this error by giving
@@ -319,7 +325,7 @@ class PyTessy(object):
                 raise FileNotFoundError('PyTessy: Couldn\'t find "tessdata" directory.')
         chdir(tess_path)
         self._tess = TesseractHandler(lib_path=lib_path, data_path=data_path,
-                                      language=language)
+                                      language=language, oem=oem, psm=psm)
         chdir(run_path)
 
 
